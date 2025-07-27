@@ -1,6 +1,4 @@
-Explain this whole code line by line
-
-// Required dependencies: gson-2.8.6.jar (or later)
+//dependencies: gson-2.8.6.jar (or later)
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -157,7 +155,7 @@ public class BibleQuizApp extends JFrame {
     }
 
     public static void main(String[] args) {
-        
+
         SwingUtilities.invokeLater(() -> {
             new BibleQuizApp().setVisible(true);
         });
