@@ -1,4 +1,4 @@
-//dependencies: gson-2.8.6.jar (or later)
+package src;//dependencies: gson-2.8.6.jar (or later)
 
 import com.google.gson.Gson;
 import com.google.gson.reflect.TypeToken;
@@ -13,13 +13,13 @@ import java.util.List;
 import java.util.*;
 import javax.swing.Timer;
 
-class Question {
-    String question;
-    String option_a;
-    String option_b;
-    String option_c;
-    String option_d;
-    String answer;
+public class Question {
+    public String question;
+    public String option_a;
+    public String option_b;
+    public String option_c;
+    public String option_d;
+    public String answer;
 }
 
 public class BibleQuizApp extends JFrame {
@@ -63,7 +63,7 @@ public class BibleQuizApp extends JFrame {
 
     private void loadQuestions() {
         try {
-            String json = new String(Files.readAllBytes(Paths.get("questions.json")));
+            String json = new String(Files.readAllBytes(Paths.get("Questions.json")));
             java.lang.reflect.Type questionListType = new TypeToken<ArrayList<Question>>() {}.getType();
             allQuestions = new Gson().fromJson(json, questionListType);
             Collections.shuffle(allQuestions);
