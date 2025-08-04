@@ -379,7 +379,7 @@ public class BibleQuizApp extends Application {
     }
 
     private void loadQuestions() {
-    try (InputStream is = getClass().getResourceAsStream("/data/questions.json")) {
+    try (InputStream is = getClass().getResourceAsStream("/resources/data/questions.json")) {
         if (is == null) {
             showAlert(Alert.AlertType.ERROR, "Error", "Questions file not found inside JAR.");
             Platform.exit();

@@ -1,0 +1,2 @@
+Main-Class: src.BibleQuizApp
+Class-Path: gson-2.10.jar
