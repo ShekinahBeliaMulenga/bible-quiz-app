@@ -1,0 +1,11 @@
+<component name="libraryTable">
+  <library name="gson-2.10">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/gson-2.10.jar!/" />
+      <root url="file://C:/javafx-sdk-24.0.2/lib" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+    <jarDirectory url="file://C:/javafx-sdk-24.0.2/lib" recursive="false" />
+  </library>
+</component>

@@ -9,7 +9,6 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.*;
-import javafx.scene.effect.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
@@ -38,6 +37,7 @@ public class BibleQuizApp extends Application {
     private Label timerLabel;
     private Label timerIcon;
     private Label scoreLabel;
+    private Label questionCounter;
     private Button[] optionButtons = new Button[4];
     private Timeline countdownTimeline;
     private int timeLeft = 30;
@@ -58,7 +58,7 @@ public class BibleQuizApp extends Application {
     @Override
     public void start(Stage primaryStage) {
         this.primaryStage = primaryStage;
-        primaryStage.setTitle("Bible Quiz Challenge");
+        primaryStage.setTitle("Bible Quiz");
         primaryStage.setMinWidth(800);
         primaryStage.setMinHeight(700);
 
@@ -74,8 +74,6 @@ public class BibleQuizApp extends Application {
 
     private void initializeSounds() {
         try {
-            String basePath = new File("").getAbsolutePath();
-            // Load sounds from resources directory
             correctSound = loadSound("resources/sounds/correct.wav");
             wrongSound = loadSound("resources/sounds/wrong.wav");
             timeUpSound = loadSound("resources/sounds/timeup.wav");
@@ -97,7 +95,7 @@ public class BibleQuizApp extends Application {
         // Background with gradient
         Pane backgroundPane = new Pane();
         backgroundPane.setStyle(
-                "-fx-background-color: linear-gradient(to bottom right, #1a2a6c, #b21f1f, #fdbb2d);"
+                "-fx-background-color: linear-gradient(to bottom right, #a8c0ff, #3f2b96);"
         );
 
         // Main content container
@@ -110,7 +108,7 @@ public class BibleQuizApp extends Application {
         bibleIcon.setStyle("-fx-font-size: 120px;");
 
         // Title with glow effect
-        Label titleLabel = new Label("Bible Quiz Challenge");
+        Label titleLabel = new Label("Bible Quiz");
         titleLabel.setStyle(
                 "-fx-font-size: 42px; " +
                         "-fx-font-weight: bold; " +
@@ -203,6 +201,11 @@ public class BibleQuizApp extends Application {
     }
 
     private void createQuizScreen() {
+        // Clear previous quiz layout if exists
+        if (quizLayout != null) {
+            quizLayout.getChildren().clear();
+        }
+
         // Updated background to lighter color
         Pane backgroundPane = new Pane();
         backgroundPane.setStyle(
@@ -213,9 +216,9 @@ public class BibleQuizApp extends Application {
         BorderPane mainLayout = new BorderPane();
         mainLayout.setPadding(new Insets(10));
 
-        // Create top bar for timer and score
+        // Create top bar with home button, timer and score
         HBox topBar = new HBox(20);
-        topBar.setAlignment(Pos.CENTER);
+        topBar.setAlignment(Pos.CENTER_LEFT);
         topBar.setStyle("-fx-background-color: rgba(255,255,255,0.7); -fx-background-radius: 10; -fx-padding: 10;");
         topBar.setMaxWidth(Double.MAX_VALUE);
 
@@ -249,7 +252,7 @@ public class BibleQuizApp extends Application {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        topBar.getChildren().addAll(timerProgress, timerContainer, spacer, scoreLabel);
+        topBar.getChildren().addAll( timerProgress, timerContainer, spacer, scoreLabel);
         mainLayout.setTop(topBar);
 
         // Center content - question and options
@@ -313,6 +316,24 @@ public class BibleQuizApp extends Application {
 
         centerContent.getChildren().addAll(headerBox, questionCard, optionsGrid);
         mainLayout.setCenter(centerContent);
+
+        // Create footer with question counter
+        HBox footer = new HBox();
+        footer.setAlignment(Pos.CENTER);
+        footer.setStyle("-fx-background-color: rgba(255,255,255,0.7); -fx-background-radius: 10; -fx-padding: 10;");
+
+        questionCounter = new Label();
+        questionCounter.setFont(Font.font("Arial", FontWeight.BOLD, 16));
+        questionCounter.setText("Question 1 of 15");
+
+        // Add some styling to make it stand out
+        questionCounter.setStyle(
+                "-fx-text-fill: #3F51B5; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.2), 5, 0, 0, 1);"
+        );
+
+        footer.getChildren().add(questionCounter);
+        mainLayout.setBottom(footer);
 
         quizLayout = new StackPane();
         quizLayout.getChildren().addAll(backgroundPane, mainLayout);
@@ -380,28 +401,33 @@ public class BibleQuizApp extends Application {
 }
 
     private void startQuiz() {
-        // Select random questions
+        // Reset used questions if starting a new quiz
         usedQuestionIndices.clear();
-        int quizSize = Math.min(15, allQuestions.size());
-        quizQuestions = new ArrayList<>(quizSize);
+        quizQuestions = new ArrayList<>();
 
-        Random random = new Random();
-        while (quizQuestions.size() < quizSize && usedQuestionIndices.size() < allQuestions.size()) {
-            int randomIndex = random.nextInt(allQuestions.size());
-            if (!usedQuestionIndices.contains(randomIndex)) {
-                quizQuestions.add(allQuestions.get(randomIndex));
-                usedQuestionIndices.add(randomIndex);
-            }
+        // Create a list of all available question indices
+        List<Integer> allIndices = new ArrayList<>();
+        for (int i = 0; i < allQuestions.size(); i++) {
+            allIndices.add(i);
+        }
+
+        // Shuffle all indices to get random order
+        Collections.shuffle(allIndices);
+
+        // Select the first 15 unique questions (or less if not enough available)
+        int quizSize = Math.min(15, allQuestions.size());
+        for (int i = 0; i < quizSize; i++) {
+            int randomIndex = allIndices.get(i);
+            quizQuestions.add(allQuestions.get(randomIndex));
+            usedQuestionIndices.add(randomIndex);
         }
 
         // Initialize quiz
         currentQuestionIndex = 0;
         score = 0;
 
-        // Create quiz screen if not already created
-        if (quizLayout == null) {
-            createQuizScreen();
-        }
+        // Always create a new quiz screen
+        createQuizScreen();
 
         scene.setRoot(quizLayout);
         nextQuestion();
@@ -412,6 +438,8 @@ public class BibleQuizApp extends Application {
             endQuiz();
             return;
         }
+
+        questionCounter.setText("Question " + (currentQuestionIndex + 1) + " of " + quizQuestions.size());
 
         Question q = quizQuestions.get(currentQuestionIndex);
         updateQuestionDisplay(q);
@@ -433,6 +461,15 @@ public class BibleQuizApp extends Application {
         timeLeft = 30;
         timerLabel.setText(timeLeft + " SECONDS");
         timerProgress.setProgress(1.0);
+
+        // Reset styles first
+        timerProgress.setStyle(
+                "-fx-accent: #4CAF50; " +
+                        "-fx-background-radius: 5; " +
+                        "-fx-effect: dropshadow(three-pass-box, rgba(0,0,0,0.1), 5, 0, 0, 1);"
+        );
+        timerLabel.setTextFill(Color.BLACK);
+        timerIcon.setStyle("-fx-font-size: 20px;");
 
         if (countdownTimeline != null) {
             countdownTimeline.stop();
@@ -672,15 +709,28 @@ public class BibleQuizApp extends Application {
         buttonBox.setAlignment(Pos.CENTER);
         buttonBox.setPadding(new Insets(20, 0, 0, 0));
 
+        Button homeButton = createActionButton("HOME", "#2196F3");
+        homeButton.setPrefWidth(220);
+        homeButton.setOnAction(e -> {
+            // Reset to welcome screen
+            scene.setRoot(welcomeLayout);
+        });
+
         Button restartButton = createActionButton("PLAY AGAIN", "#4CAF50");
         restartButton.setPrefWidth(220);
-        restartButton.setOnAction(e -> startQuiz());
+        restartButton.setOnAction(e -> {
+            score = 0;
+            scoreLabel.setText("🏆 SCORE: " + score);
+            PauseTransition delay = new PauseTransition(Duration.seconds(0.5));
+            delay.setOnFinished(event -> startQuiz());
+            delay.play();
+        });
 
         Button exitButton = createActionButton("EXIT", "#F44336");
         exitButton.setPrefWidth(220);
         exitButton.setOnAction(e -> Platform.exit());
 
-        buttonBox.getChildren().addAll(restartButton, exitButton);
+        buttonBox.getChildren().addAll(homeButton, restartButton, exitButton);
 
         // Assemble all components
         mainContent.getChildren().addAll(scoreEmoji, resultsCard, buttonBox);
