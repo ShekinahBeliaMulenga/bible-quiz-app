@@ -20,6 +20,8 @@ import javafx.scene.media.AudioClip;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
@@ -356,21 +358,26 @@ public class BibleQuizApp extends Application {
     }
 
     private void loadQuestions() {
-        try {
-            String json = new String(Files.readAllBytes(Paths.get(
-                    getClass().getResource("/resources/data/questions.json").toURI())));
-            java.lang.reflect.Type questionListType = new TypeToken<ArrayList<Question>>() {}.getType();
-            allQuestions = new Gson().fromJson(json, questionListType);
-
-            if (allQuestions.size() < 200) {
-                showAlert(Alert.AlertType.WARNING, "Warning", "The questions file should contain at least 200 questions.");
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-            showAlert(Alert.AlertType.ERROR, "Error", "Failed to load questions.");
+    try (InputStream is = getClass().getResourceAsStream("/data/questions.json")) {
+        if (is == null) {
+            showAlert(Alert.AlertType.ERROR, "Error", "Questions file not found inside JAR.");
             Platform.exit();
+            return;
         }
+
+        InputStreamReader reader = new InputStreamReader(is);
+        java.lang.reflect.Type questionListType = new TypeToken<ArrayList<Question>>() {}.getType();
+        allQuestions = new Gson().fromJson(reader, questionListType);
+
+        if (allQuestions.size() < 200) {
+            showAlert(Alert.AlertType.WARNING, "Warning", "The questions file should contain at least 200 questions.");
+        }
+    } catch (Exception e) {
+        e.printStackTrace();
+        showAlert(Alert.AlertType.ERROR, "Error", "Failed to load questions.");
+        Platform.exit();
     }
+}
 
     private void startQuiz() {
         // Select random questions
